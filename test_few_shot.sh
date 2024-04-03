@@ -22,4 +22,4 @@ python test.py \
   --k_shot 4 \
   --seed 42 \
 
-# TODO: test on the LOCO dataset
+# TODO: [later] test on the LOCO dataset

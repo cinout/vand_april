@@ -580,7 +580,7 @@ class VisionTransformer(nn.Module):
         B, C, L = attn[0].shape
         H = int(np.sqrt(L - 1))
         # out_attn = torch.zeros([H, H]).to("cuda")
-        out_attn = torch.zeros([H, H]).to(x.device)  # TODO: is this correct?
+        out_attn = torch.zeros([H, H]).to(x.device)  # FIXME: is this correct?
         for i in range(len(attn)):
             out_attn += attn[i][0, 0, 1:].view(H, H)
         x = x.permute(1, 0, 2)  # LND -> NLD

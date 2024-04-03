@@ -13,7 +13,7 @@ import torchvision.transforms as transforms
 import logging
 
 import open_clip
-from dataset import VisaDataset, MVTecDataset
+from dataset import LOCODataset, VisaDataset, MVTecDataset
 from model import LinearLayer
 from loss import FocalLoss, BinaryDiceLoss
 from prompt_ensemble import encode_text_with_prompt_ensemble
@@ -92,8 +92,9 @@ def train(args):
             aug_rate=args.aug_rate,
         )
     elif args.dataset == "loco":
-        # TODO: update for LOCO
-        pass
+        train_data = LOCODataset(
+            root=args.train_data_path, transform=preprocess, target_transform=transform
+        )
     else:
         train_data = VisaDataset(
             root=args.train_data_path, transform=preprocess, target_transform=transform
@@ -119,7 +120,6 @@ def train(args):
     loss_dice = BinaryDiceLoss()
 
     # text prompt
-    # TODO: update for LOCO
     with torch.cuda.amp.autocast(), torch.no_grad():
         obj_list = train_data.get_cls_names()
         text_prompts = encode_text_with_prompt_ensemble(

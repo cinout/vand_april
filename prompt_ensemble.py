@@ -65,20 +65,27 @@ def encode_text_with_prompt_ensemble(model, objs, tokenizer, device):
     text_prompts = {}
     for obj in objs:
         text_features = []
-        for i in range(len(prompt_state)):
-            prompted_state = [state.format(obj) for state in prompt_state[i]]
-            prompted_sentence = []
+        for i in range(len(prompt_state)):  # normal, abnormal
+            # FIXME: replace _ with blank
+            prompted_state = [
+                state.format(obj.replace("_", " ")) for state in prompt_state[i]
+            ]
+            prompted_sentence = []  # complete sentences
             for s in prompted_state:
                 for template in prompt_templates:
                     prompted_sentence.append(template.format(s))
             prompted_sentence = tokenizer(prompted_sentence).to(device)
             class_embeddings = model.encode_text(prompted_sentence)
-            class_embeddings /= class_embeddings.norm(dim=-1, keepdim=True)
+            class_embeddings /= class_embeddings.norm(
+                dim=-1, keepdim=True
+            )  # [245, 768]
+
             class_embedding = class_embeddings.mean(dim=0)
-            class_embedding /= class_embedding.norm()
+            class_embedding /= class_embedding.norm()  # [768]
+
             text_features.append(class_embedding)
 
-        text_features = torch.stack(text_features, dim=1).to(device)
+        text_features = torch.stack(text_features, dim=1).to(device)  # [768, 2]
         text_prompts[obj] = text_features
 
     return text_prompts

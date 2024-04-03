@@ -96,7 +96,6 @@ def test(args):
     )
     model.to(device)
     tokenizer = open_clip.get_tokenizer(args.model)
-    # TODO: what is model and tokenizer?
 
     # logger
     root_logger = logging.getLogger()
@@ -152,12 +151,10 @@ def test(args):
             mode="test",
         )
     elif dataset_name == "loco":
-        # TODO: update for LOCO
         test_data = LOCODataset(
             root=dataset_dir,
             transform=preprocess,
             target_transform=transform,
-            # aug_rate=-1, TODO: do i need this?
             mode="test",
         )
     else:
@@ -167,6 +164,7 @@ def test(args):
             target_transform=transform,
             mode="test",
         )
+
     test_dataloader = torch.utils.data.DataLoader(
         test_data, batch_size=1, shuffle=False
     )
@@ -174,7 +172,7 @@ def test(args):
 
     # few shot
     if args.mode == "few_shot":
-        # TODO: update for LOCO
+        # TODO: [later] update for LOCO
         mem_features = memory(
             args.model,
             model,
@@ -192,11 +190,11 @@ def test(args):
     # text prompt
     with torch.cuda.amp.autocast(), torch.no_grad():
         # TODO: this takes a lot of time, consider save it
-        # text_prompts = encode_text_with_prompt_ensemble(
-        #     model, obj_list, tokenizer, device
-        # )
-        with open("text_prompts_mvtec.t", "rb") as f:
-            text_prompts = torch.load(f)
+        text_prompts = encode_text_with_prompt_ensemble(
+            model, obj_list, tokenizer, device
+        )
+        # with open("text_prompts_mvtec.t", "rb") as f:
+        #     text_prompts = torch.load(f)
 
     results = {}
     results["cls_names"] = []
@@ -251,7 +249,7 @@ def test(args):
             anomaly_map = np.sum(anomaly_maps, axis=0)  # nparray, [1, 518, 518]
 
             # few shot
-            # TODO: to understand later
+            # TODO: [later] to understand later
             if args.mode == "few_shot":
                 image_features, patch_tokens = model.encode_image(
                     image, few_shot_features
@@ -325,7 +323,7 @@ def test(args):
         pr_px = np.array(pr_px)
         pr_sp = np.array(pr_sp)
 
-        # TODO: to understand later
+        # TODO: [later] to understand later
         if args.mode == "few_shot":
             pr_sp_tmp = np.array(pr_sp_tmp)
             pr_sp_tmp = (pr_sp_tmp - pr_sp_tmp.min()) / (

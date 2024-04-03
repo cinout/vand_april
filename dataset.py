@@ -118,6 +118,7 @@ class MVTecDataset(data.Dataset):
         meta_info = meta_info[mode]
 
         if mode == "train":
+            # TODO: [later] understand
             self.cls_names = [obj_name]
             save_dir = os.path.join(save_dir, "k_shot.txt")
         else:
@@ -125,6 +126,7 @@ class MVTecDataset(data.Dataset):
             self.cls_names = list(meta_info.keys())
         for cls_name in self.cls_names:
             if mode == "train":
+                # TODO: [later] understand later
                 data_tmp = meta_info[cls_name]
                 indices = torch.randint(0, len(data_tmp), (k_shot,))
                 for i in range(len(indices)):
@@ -246,7 +248,7 @@ class MVTecDataset(data.Dataset):
 class LOCODataset(data.Dataset):
     def __init__(
         self,
-        root,
+        root,  # ./data/loco
         transform,
         target_transform,
         mode="test",
@@ -258,11 +260,22 @@ class LOCODataset(data.Dataset):
         self.transform = transform
         self.target_transform = target_transform
 
-        # TODO: update meta.json for LOCO
         self.data_all = []
         meta_info = json.load(open(f"{self.root}/meta.json", "r"))
-        name = self.root.split("/")[-1]
         meta_info = meta_info[mode]
+
+        if mode == "train":
+            # TODO: [later] implement later
+            raise Exception("not implemented yet")
+        else:
+            self.cls_names = list(meta_info.keys())
+        for cls_name in self.cls_names:
+            if mode == "train":
+                # TODO: [later] implement later
+                raise Exception("not implemented yet")
+            else:
+                self.data_all.extend(meta_info[cls_name])
+        self.length = len(self.data_all)
 
     def __len__(self):
         return self.length
@@ -271,4 +284,47 @@ class LOCODataset(data.Dataset):
         return self.cls_names
 
     def __getitem__(self, index):
-        pass
+        data = self.data_all[index]
+        img_path, mask_path, cls_name, specie_name, anomaly = (
+            data["img_path"],
+            data["mask_path"],
+            data["cls_name"],
+            data["specie_name"],
+            data["anomaly"],
+        )
+
+        img = Image.open(os.path.join(self.root, img_path))
+        if anomaly == 0:
+            img_mask = Image.fromarray(np.zeros((img.size[0], img.size[1])), mode="L")
+            img_mask = self.target_transform(img_mask)
+        else:
+            img_mask = []
+            for mask_path_individual in mask_path:
+                img_mask_individual = (
+                    np.array(
+                        Image.open(
+                            os.path.join(self.root, mask_path_individual)
+                        ).convert("L")
+                    )
+                    > 0
+                )
+                img_mask_individual = Image.fromarray(
+                    img_mask_individual.astype(np.uint8) * 255, mode="L"
+                )
+                img_mask_individual = self.target_transform(
+                    img_mask_individual
+                )  # shape: [1, 518, 518], values within [0.0, 1.0]
+                img_mask.append(img_mask_individual)
+            img_mask = torch.cat(img_mask, dim=0)
+            img_mask, _ = torch.max(img_mask, dim=0, keepdim=True)
+
+        # transforms
+        img = self.transform(img) if self.transform is not None else img
+
+        return {
+            "img": img,  # [3, 518, 518]
+            "img_mask": img_mask,  # [1, 518, 518], many different values within [0,1]
+            "cls_name": cls_name,
+            "anomaly": anomaly,
+            "img_path": os.path.join(self.root, img_path),
+        }
