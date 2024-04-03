@@ -11,7 +11,7 @@
 
 #SBATCH --job-name="0sh"
 #SBATCH --account=punim1623
-#SBATCH --time=0-02:00:00
+#SBATCH --time=0-01:30:00
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
@@ -39,7 +39,7 @@ python test.py \
   --data_path ./data/loco \
   --save_path ./results/loco/zero_shot \
   --config_path ./open_clip/model_configs/ViT-L-14-336.json \
-  --checkpoint_path ./exps/pretrained/visa_pretrained.pth \
+  --checkpoint_path ./exps/pretrained/mvtec_pretrained.pth \
   --model ViT-L-14-336 \
   --features_list 6 12 18 24 \
   --pretrained openai \
