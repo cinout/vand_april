@@ -7,11 +7,11 @@
 
 #SBATCH --partition=deeplearn
 #SBATCH --qos=gpgpudeeplearn
-#SBATCH --constraint=dlg4|dlg5
+#SBATCH --constraint=dlg3|dlg4|dlg5
 
 #SBATCH --job-name="0sh"
 #SBATCH --account=punim1623
-#SBATCH --time=0-04:00:00
+#SBATCH --time=0-02:00:00
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
@@ -21,12 +21,12 @@
 
 #SBATCH --mem=60G
 
-# export WORLD_SIZE=2   ### FIXME: update world size: nodes x ntasks-per-node
-# export MASTER_PORT=28400
-# echo ">>> NODELIST="${SLURM_NODELIST}
-# master_addr=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
-# export MASTER_ADDR=$master_addr
-# echo ">>> MASTER_ADDR="$MASTER_ADDR
+#### export WORLD_SIZE=2   ### FIXME: update world size: nodes x ntasks-per-node
+#### export MASTER_PORT=28400
+#### echo ">>> NODELIST="${SLURM_NODELIST}
+#### master_addr=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
+#### export MASTER_ADDR=$master_addr
+#### echo ">>> MASTER_ADDR="$MASTER_ADDR
 
 module purge
 
