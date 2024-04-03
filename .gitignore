@@ -16,7 +16,8 @@ build/
 dist/
 wheels/
 runs*/
-data/
+data/loco
+data/mvtec
 output*/
 .DS_Store
 .DS_store
