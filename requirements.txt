@@ -15,3 +15,23 @@ torch==1.12.1
 torchvision==0.13.1
 tqdm==4.64.1
 transformers==4.15.0
+
+# [][][] in the zero-shot setting, we use the test set of another dataset for training (this conforms to the principle that zero-shot learning cannot train on data of related objects). More details please refer to our technical report. The train mode in dataset.py is written for the few-shot setting.
+
+# [][][] our method is trained on Dataset A (e.g., MVTec AD) and tested on Dataset B (e.g., VisA). It is worth noting that although we use the test set of Dataset A during training, the training and testing are not conducted on the same dataset.
+
+# [][] in test.py file, for both normal and abnormal images, text_probs[0][1] represents the probability of the image being classified as abnormal. For abnormal images, this value is relatively high, while for normal images, this value is relatively low.
+
+# [][] in train.py, image_features is the global image representation (aka class tokens in the original openclip).
+
+
+
+# "px" is the abbreviation for "pixel," representing pixel-level metrics. "sp" is the abbreviation for "sample," representing image-level metrics.
+
+# The accuracy of classification primarily depends on the pre-trained model and the prompts. Designing appropriate prompts manually is quite challenging. Perhaps you could try prompt learning to further enhance the classification performance.
+
+# Due to the presence of overfitting issues, especially when training and testing on different datasets, it is challenging to determine when it is appropriate to stop training our method. Different epochs may yield different results, with some epochs showing higher PRO metrics.
+
+# We hope that the added linear layers learn a general mapping, rather than one that is specific to a particular dataset. Therefore, when training reaches a certain point, continued reduction in loss may lead to decreased generalization, which is not desirable. A problem faced by all fine-tuning zero-shot methods currently.
+
+
