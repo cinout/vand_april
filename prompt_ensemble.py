@@ -5,7 +5,7 @@ import torch
 import numpy as np
 
 
-# TODO: update for LOCO
+# TODO: [later] update for LOCO
 def encode_text_with_prompt_ensemble(model, objs, tokenizer, device):
     prompt_normal = [
         "{}",

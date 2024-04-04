@@ -172,7 +172,6 @@ def test(args):
 
     # few shot
     if args.mode == "few_shot":
-        # TODO: [later] update for LOCO
         mem_features = memory(
             args.model,
             model,
@@ -186,10 +185,11 @@ def test(args):
             dataset_name,
             device,
         )
+        # mem_features[obj].len is #stages (4), each with shape: [5476, 1024]
 
     # text prompt
     with torch.cuda.amp.autocast(), torch.no_grad():
-        # TODO: this takes a lot of time, consider save it
+        # TODO: [later] this takes a lot of time, consider save it
         text_prompts = encode_text_with_prompt_ensemble(
             model, obj_list, tokenizer, device
         )
@@ -228,7 +228,9 @@ def test(args):
                 dim=-1
             )  # shape: [1, 2]
 
-            results["pr_sp"].append(text_probs[0][1].cpu().item())
+            results["pr_sp"].append(
+                text_probs[0][1].cpu().item()
+            )  # sample-level anomaly score based on text-visual alignment
 
             # pixel
             patch_tokens = linearlayer(patch_tokens)
@@ -249,21 +251,20 @@ def test(args):
             anomaly_map = np.sum(anomaly_maps, axis=0)  # nparray, [1, 518, 518]
 
             # few shot
-            # TODO: [later] to understand later
             if args.mode == "few_shot":
                 image_features, patch_tokens = model.encode_image(
                     image, few_shot_features
                 )
                 anomaly_maps_few_shot = []
-                for idx, p in enumerate(patch_tokens):
+                for idx, p in enumerate(patch_tokens):  # at each stage
                     if "ViT" in args.model:
                         p = p[0, 1:, :]
                     else:
                         p = p[0].view(p.shape[1], -1).permute(1, 0).contiguous()
                     cos = pairwise.cosine_similarity(
                         mem_features[cls_name[0]][idx].cpu(), p.cpu()
-                    )
-                    height = int(np.sqrt(cos.shape[1]))
+                    )  # cosine similarity with ref tokens
+                    height = int(np.sqrt(cos.shape[1]))  # HH -> H, H
                     anomaly_map_few_shot = np.min((1 - cos), 0).reshape(
                         1, 1, height, height
                     )
@@ -275,7 +276,9 @@ def test(args):
                     )
                     anomaly_maps_few_shot.append(anomaly_map_few_shot[0].cpu().numpy())
                 anomaly_map_few_shot = np.sum(anomaly_maps_few_shot, axis=0)
-                anomaly_map = anomaly_map + anomaly_map_few_shot
+                anomaly_map = (
+                    anomaly_map + anomaly_map_few_shot
+                )  # add the new ref_anomaly_score to anomaly_map, which is based on lang-vision similarity
 
             results["anomaly_maps"].append(anomaly_map)
 
@@ -309,9 +312,11 @@ def test(args):
         pr_px = []
         gt_sp = []
         pr_sp = []
-        pr_sp_tmp = []
+        pr_sp_tmp = (
+            []
+        )  # just for few-shot, max anoamly value of each sample under "obj" category
         table.append(obj)
-        for idxes in range(len(results["cls_names"])):
+        for idxes in range(len(results["cls_names"])):  # each test image
             if results["cls_names"][idxes] == obj:
                 gt_px.append(results["imgs_masks"][idxes].squeeze(1).numpy())
                 pr_px.append(results["anomaly_maps"][idxes])
@@ -321,14 +326,13 @@ def test(args):
         gt_px = np.array(gt_px)
         gt_sp = np.array(gt_sp)
         pr_px = np.array(pr_px)
-        pr_sp = np.array(pr_sp)
+        pr_sp = np.array(pr_sp)  # pr: predicted, sp: sample
 
-        # TODO: [later] to understand later
         if args.mode == "few_shot":
             pr_sp_tmp = np.array(pr_sp_tmp)
             pr_sp_tmp = (pr_sp_tmp - pr_sp_tmp.min()) / (
                 pr_sp_tmp.max() - pr_sp_tmp.min()
-            )
+            )  # normalized sample-level anomaly score
             pr_sp = 0.5 * (pr_sp + pr_sp_tmp)
 
         auroc_px = roc_auc_score(gt_px.ravel(), pr_px.ravel())

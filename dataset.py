@@ -118,17 +118,17 @@ class MVTecDataset(data.Dataset):
         meta_info = meta_info[mode]
 
         if mode == "train":
-            # TODO: [later] understand
-            self.cls_names = [obj_name]
+            self.cls_names = [obj_name]  # only one, and one by one in a loop
             save_dir = os.path.join(save_dir, "k_shot.txt")
         else:
             # all classes
             self.cls_names = list(meta_info.keys())
         for cls_name in self.cls_names:
             if mode == "train":
-                # TODO: [later] understand later
                 data_tmp = meta_info[cls_name]
-                indices = torch.randint(0, len(data_tmp), (k_shot,))
+                indices = torch.randint(
+                    0, len(data_tmp), (k_shot,)
+                )  # randomly choose k_shot ref images
                 for i in range(len(indices)):
                     self.data_all.append(data_tmp[indices[i]])
                     with open(save_dir, "a") as f:
@@ -245,6 +245,22 @@ class MVTecDataset(data.Dataset):
         }
 
 
+# for train split, divide images by type, return the numerical index of the image
+# FIXME: complete later on
+MULTI_TYPES = {
+    "juice_bottle": {
+        "orange_juice": [0, 1, 5, 9, 12, 13, 14],
+        "cherry_juice": [4, 8, 10, 15, 16],
+        "banana_juice": [2, 3, 6, 7, 11],
+    },
+    "splicing_connectors": {
+        "yellow_cable": [0, 2, 5, 6, 8],
+        "blue_cable": [3, 7, 11, 15, 16],
+        "red_cable": [1, 4, 9, 10, 12, 13, 14],
+    },
+}
+
+
 class LOCODataset(data.Dataset):
     def __init__(
         self,
@@ -265,14 +281,28 @@ class LOCODataset(data.Dataset):
         meta_info = meta_info[mode]
 
         if mode == "train":
-            # TODO: [later] implement later
-            raise Exception("not implemented yet")
+            self.cls_names = [obj_name]  # only one, and one by one in a loop
+            save_dir = os.path.join(save_dir, "k_shot.txt")
         else:
             self.cls_names = list(meta_info.keys())
         for cls_name in self.cls_names:
             if mode == "train":
-                # TODO: [later] implement later
-                raise Exception("not implemented yet")
+                data_tmp = meta_info[cls_name]
+
+                if cls_name in ["juice_bottle", "splicing_connectors"]:
+                    train_imgs = MULTI_TYPES[cls_name]
+                    values = train_imgs.values()
+                    indices = []
+                    for value in values:
+                        chosen = random.sample(value, k_shot)
+                        indices.extend(chosen)
+                else:
+                    indices = torch.randint(0, len(data_tmp), (k_shot,))
+
+                for i in range(len(indices)):
+                    self.data_all.append(data_tmp[indices[i]])
+                    with open(save_dir, "a") as f:
+                        f.write(data_tmp[indices[i]]["img_path"] + "\n")
             else:
                 self.data_all.extend(meta_info[cls_name])
         self.length = len(self.data_all)
