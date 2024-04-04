@@ -23,7 +23,6 @@
 #   --seed 42 \
 
 ### test on the LOCO dataset
-# ###TODO: change save_path, checkpoint_path
 python test.py \
   --mode few_shot \
   --dataset loco \

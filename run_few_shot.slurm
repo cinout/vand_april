@@ -33,13 +33,14 @@ module purge
 eval "$(conda shell.bash hook)"
 conda activate anogpt
 
+###TODO: change save_path, checkpoint_path
 python test.py \
   --mode few_shot \
   --dataset loco \
   --data_path ./data/loco \
-  --save_path ./results/loco/few_shot/4shot/seed42 \
+  --save_path ./results/loco/4shot_mvtec_defaulttemplate_seed42 \
   --config_path ./open_clip/model_configs/ViT-L-14-336.json \
-  --checkpoint_path ./exps/pretrained/visa_pretrained.pth \
+  --checkpoint_path ./exps/pretrained/mvtec_pretrained.pth \
   --model ViT-L-14-336 \
   --features_list 6 12 18 24 \
   --few_shot_features 6 12 18 24 \
