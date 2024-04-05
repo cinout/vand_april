@@ -37,3 +37,4 @@ python test.py \
   --image_size 518 \
   --k_shot 4 \
   --seed 42 \
+  --loco_template v1 \

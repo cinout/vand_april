@@ -24,7 +24,7 @@ import open_clip
 from few_shot import memory
 from model import LinearLayer
 from dataset import LOCODataset, VisaDataset, MVTecDataset
-from prompt_ensemble import encode_text_with_prompt_ensemble
+from prompt_ensemble import encode_text_with_LOCO_v1, encode_text_with_prompt_ensemble
 
 
 def setup_seed(seed):
@@ -189,10 +189,12 @@ def test(args):
 
     # text prompt
     with torch.cuda.amp.autocast(), torch.no_grad():
-        # TODO: [later] this takes a lot of time, consider save it
-        text_prompts = encode_text_with_prompt_ensemble(
-            model, obj_list, tokenizer, device
-        )
+        if dataset_name == "loco" and args.loco_template == "v1":
+            text_prompts = encode_text_with_LOCO_v1(model, obj_list, tokenizer, device)
+        else:
+            text_prompts = encode_text_with_prompt_ensemble(
+                model, obj_list, tokenizer, device
+            )
         # with open("text_prompts_mvtec.t", "rb") as f:
         #     text_prompts = torch.load(f)
 
@@ -452,6 +454,15 @@ if __name__ == "__main__":
         "--k_shot", type=int, default=10, help="e.g., 10-shot, 5-shot, 1-shot"
     )
     parser.add_argument("--seed", type=int, default=10, help="random seed")
+
+    # template for LOCO
+    parser.add_argument(
+        "--loco_template",
+        type=str,
+        choices=["none", "v1", "v2"],
+        default="none",
+        help="text template for LOCO dataset",
+    )
     args = parser.parse_args()
 
     setup_seed(args.seed)

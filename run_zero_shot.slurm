@@ -33,17 +33,19 @@ module purge
 eval "$(conda shell.bash hook)"
 conda activate anogpt
 
+###FIXME: change save_path, checkpoint_path
 python test.py \
   --mode zero_shot \
   --dataset loco \
   --data_path ./data/loco \
-  --save_path ./results/loco/zero_shot \
+  --save_path ./results/loco/0shot_mvtec_templatev1 \
   --config_path ./open_clip/model_configs/ViT-L-14-336.json \
   --checkpoint_path ./exps/pretrained/mvtec_pretrained.pth \
   --model ViT-L-14-336 \
   --features_list 6 12 18 24 \
   --pretrained openai \
   --image_size 518 \
+  --loco_template v1 \
 
 ##Log this job's resource usage stats###
 my-job-stats -a -n -s

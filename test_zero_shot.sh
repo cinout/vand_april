@@ -30,3 +30,4 @@ python test.py \
   --features_list 6 12 18 24 \
   --pretrained openai \
   --image_size 518 \
+  --loco_template v1 \
