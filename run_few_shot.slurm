@@ -9,7 +9,7 @@
 #SBATCH --qos=gpgpudeeplearn
 #SBATCH --constraint=dlg3|dlg4|dlg5
 
-#SBATCH --job-name="0sh"
+#SBATCH --job-name="4sh"
 #SBATCH --account=punim1623
 #SBATCH --time=0-01:30:00
 
@@ -33,12 +33,12 @@ module purge
 eval "$(conda shell.bash hook)"
 conda activate anogpt
 
-###FIXME: change save_path, checkpoint_path
+###FIXME: change save_path, checkpoint_path, loco_template
 python test.py \
   --mode few_shot \
   --dataset loco \
   --data_path ./data/loco \
-  --save_path ./results/loco/4shot_mvtec_templatev1_seed42 \
+  --save_path ./results/loco/4shot_mvtec_templatev0_seed42 \
   --config_path ./open_clip/model_configs/ViT-L-14-336.json \
   --checkpoint_path ./exps/pretrained/mvtec_pretrained.pth \
   --model ViT-L-14-336 \
@@ -48,7 +48,7 @@ python test.py \
   --image_size 518 \
   --k_shot 4 \
   --seed 42 \
-  --loco_template v1 \
+  --loco_template v0 \
 
 ##Log this job's resource usage stats###
 my-job-stats -a -n -s

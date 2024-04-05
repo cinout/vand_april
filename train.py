@@ -16,7 +16,7 @@ import open_clip
 from dataset import LOCODataset, VisaDataset, MVTecDataset
 from model import LinearLayer
 from loss import FocalLoss, BinaryDiceLoss
-from prompt_ensemble import encode_text_with_LOCO_v1, encode_text_with_prompt_ensemble
+from prompt_ensemble import encode_text_with_LOCO, encode_text_with_prompt_ensemble
 
 
 def setup_seed(seed):
@@ -122,8 +122,10 @@ def train(args):
     # text prompt
     with torch.cuda.amp.autocast(), torch.no_grad():
         obj_list = train_data.get_cls_names()
-        if args.dataset == "loco" and args.loco_template == "v1":
-            text_prompts = encode_text_with_LOCO_v1(model, obj_list, tokenizer, device)
+        if args.dataset == "loco" and args.loco_template in ["v0", "v1", "v2"]:
+            text_prompts = encode_text_with_LOCO(
+                model, obj_list, tokenizer, args.loco_template, device
+            )
         else:
             text_prompts = encode_text_with_prompt_ensemble(
                 model, obj_list, tokenizer, device
@@ -250,7 +252,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--loco_template",
         type=str,
-        choices=["none", "v1", "v2"],
+        choices=["none", "v0", "v1", "v2"],
         default="none",
         help="text template for LOCO dataset",
     )

@@ -96,7 +96,7 @@ def encode_text_with_prompt_ensemble(model, objs, tokenizer, device):
     return text_prompts
 
 
-def encode_text_with_LOCO_v1(model, objs, tokenizer, device):
+def encode_text_with_LOCO(model, objs, tokenizer, loco_template, device):
     #### templates for STRUCTURAL information ####
     items_in_loco_image = {
         "breakfast_box": [
@@ -222,15 +222,20 @@ def encode_text_with_LOCO_v1(model, objs, tokenizer, device):
             )  # text embeddings of: [normal, abnormal], STRUCTURAL
 
         ### LOGICAL ###
-        logical_rules = rules_in_loco[obj]
-        class_embedding_normal_logical = tokenizing_sentences(
-            logical_rules, tokenizer, model, device
-        )
-        # merge logical embeddings into structural embeddings
-        text_features[0] = torch.mean(
-            torch.stack([class_embedding_normal_logical, text_features[0]], dim=0),
-            dim=0,
-        )
+        if loco_template == "v1":
+            logical_rules = rules_in_loco[obj]
+            class_embedding_normal_logical = tokenizing_sentences(
+                logical_rules, tokenizer, model, device
+            )
+            # merge logical embeddings into structural embeddings
+            text_features[0] = torch.mean(
+                torch.stack([class_embedding_normal_logical, text_features[0]], dim=0),
+                dim=0,
+            )
+
+        if loco_template == "v2":
+            # TODO:
+            pass
 
         ### FINALIZE ###
         text_features = torch.stack(text_features, dim=1).to(device)  # [768, 2]
