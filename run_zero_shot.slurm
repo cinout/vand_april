@@ -45,7 +45,7 @@ python test.py \
   --features_list 6 12 18 24 \
   --pretrained openai \
   --image_size 518 \
-  --loco_template v0 \
+  --loco_template v2 \
 
 ##Log this job's resource usage stats###
 my-job-stats -a -n -s
