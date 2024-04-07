@@ -126,7 +126,7 @@ def test(args):
         model_configs = json.load(f)
     linearlayer = LinearLayer(
         model_configs["vision_cfg"]["width"],
-        model_configs["embed_dim"],
+        model_configs["embed_dim"],  # 768
         len(features_list),
         args.model,
     ).to(device)
@@ -189,7 +189,7 @@ def test(args):
 
     # text prompt
     with torch.cuda.amp.autocast(), torch.no_grad():
-        if dataset_name == "loco" and args.loco_template in ["v0", "v1", "v2"]:
+        if dataset_name == "loco" and args.loco_template is not "none":
             text_prompts = encode_text_with_LOCO(
                 model, obj_list, tokenizer, args.loco_template, device
             )
@@ -461,7 +461,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--loco_template",
         type=str,
-        choices=["none", "v0", "v1", "v2"],
         default="none",
         help="text template for LOCO dataset",
     )

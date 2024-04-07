@@ -122,7 +122,7 @@ def train(args):
     # text prompt
     with torch.cuda.amp.autocast(), torch.no_grad():
         obj_list = train_data.get_cls_names()
-        if args.dataset == "loco" and args.loco_template in ["v0", "v1", "v2"]:
+        if args.dataset == "loco" and args.loco_template is not "none":
             text_prompts = encode_text_with_LOCO(
                 model, obj_list, tokenizer, args.loco_template, device
             )
@@ -252,7 +252,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--loco_template",
         type=str,
-        choices=["none", "v0", "v1", "v2"],
         default="none",
         help="text template for LOCO dataset",
     )

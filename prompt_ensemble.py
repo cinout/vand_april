@@ -129,7 +129,7 @@ def encode_text_with_LOCO(model, objs, tokenizer, loco_template, device):
             "red cable",
             "yellow cable",
             "blue cable",
-            "cable clamps",
+            "splicing connector",
         ],
     }
 
@@ -159,7 +159,7 @@ def encode_text_with_LOCO(model, objs, tokenizer, loco_template, device):
     ]
 
     #### templates for LOGICAL information ####
-    rules_in_loco = {
+    normal_rules_in_loco = {
         "breakfast_box": [
             "the photo shows a food box",
             "there are two oranges on the left",
@@ -197,45 +197,92 @@ def encode_text_with_LOCO(model, objs, tokenizer, loco_template, device):
         ],
     }
 
+    abnormal_rules_in_loco = {
+        "breakfast_box": [
+            "the food box is empty",
+            "there are three oranges",
+            "there are three nectarines",
+            "the right part is filled with cereal",
+        ],
+        "juice_bottle": [
+            "the bottle is emtpy",
+            "there is no label on the bottle",
+            "the juice color does not match the fruit label",
+        ],
+        "pushpins": [
+            "some grids are empty",
+            "soem grids have more than one pushpin",
+        ],
+        "screw_bag": [
+            "there is no long screw in the bag",
+            "there is no short screw in the bag",
+            "there are no washers in the bag",
+            "there are no nut hardware in the bag",
+        ],
+        "splicing_connectors": [
+            "the red cable connects two splicing connectors with two cable clamps",
+            "the blue cable connects two splicing connectors with five cable clamps",
+            "the yellow cable connects two splicing connectors with three cable clamps",
+            "the left and right splicing connectors have different number of cable clamps",
+            "the cable is broken",
+        ],
+    }
+
     text_prompts = {}
     for obj in objs:
         text_features = []
 
-        ### STRUCTURAL ###
-        for i in range(len(prompt_structural_state)):  # normal, abnormal [STRUCTURAL]
-            prompted_sentence = []  # complete sentences for STRUCTURAL
-            for fine_grained_item in items_in_loco_image[obj]:  # orange, nectarine, ...
-                prompted_state = [
-                    state.format(fine_grained_item)
-                    for state in prompt_structural_state[i]
-                ]
-                for s in prompted_state:
-                    for template in prompt_structural_templates:
-                        prompted_sentence.append(template.format(s))
-
-            class_embedding = tokenizing_sentences(
-                prompted_sentence, tokenizer, model, device
-            )
-
-            text_features.append(
-                class_embedding
-            )  # text embeddings of: [normal, abnormal], STRUCTURAL
-
-        ### LOGICAL ###
-        if loco_template == "v1":
-            logical_rules = rules_in_loco[obj]
+        if loco_template == "v2":
+            logical_rules = normal_rules_in_loco[obj]
             class_embedding_normal_logical = tokenizing_sentences(
                 logical_rules, tokenizer, model, device
             )
-            # merge logical embeddings into structural embeddings
-            text_features[0] = torch.mean(
-                torch.stack([class_embedding_normal_logical, text_features[0]], dim=0),
-                dim=0,
+            abnormal_rules = abnormal_rules_in_loco[obj]
+            class_embedding_abnormal_logical = tokenizing_sentences(
+                abnormal_rules, tokenizer, model, device
             )
 
-        if loco_template == "v2":
-            # TODO:
-            pass
+            text_features.append(class_embedding_normal_logical)
+            text_features.append(class_embedding_abnormal_logical)
+
+        else:
+            ### STRUCTURAL ###
+            for i in range(
+                len(prompt_structural_state)
+            ):  # normal, abnormal [STRUCTURAL]
+                prompted_sentence = []  # complete sentences for STRUCTURAL
+                for fine_grained_item in items_in_loco_image[
+                    obj
+                ]:  # orange, nectarine, ...
+                    prompted_state = [
+                        state.format(fine_grained_item)
+                        for state in prompt_structural_state[i]
+                    ]
+                    for s in prompted_state:
+                        for template in prompt_structural_templates:
+                            prompted_sentence.append(template.format(s))
+
+                class_embedding = tokenizing_sentences(
+                    prompted_sentence, tokenizer, model, device
+                )
+
+                text_features.append(
+                    class_embedding
+                )  # text embeddings of: [normal, abnormal], STRUCTURAL
+
+            ### LOGICAL ###
+            if loco_template == "v1":
+                logical_rules = normal_rules_in_loco[obj]
+                class_embedding_normal_logical = tokenizing_sentences(
+                    logical_rules, tokenizer, model, device
+                )
+                # merge logical embeddings into structural embeddings
+                text_features[0] = torch.mean(
+                    torch.stack(
+                        [class_embedding_normal_logical, text_features[0]], dim=0
+                    ),
+                    dim=0,
+                )
 
         ### FINALIZE ###
         text_features = torch.stack(text_features, dim=1).to(device)  # [768, 2]
