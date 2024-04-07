@@ -38,7 +38,7 @@ python test.py \
   --mode zero_shot \
   --dataset loco \
   --data_path ./data/loco \
-  --save_path ./results/loco/0shot_mvtec_templatev0 \
+  --save_path ./results/loco/0shot_mvtec_templatev2 \
   --config_path ./open_clip/model_configs/ViT-L-14-336.json \
   --checkpoint_path ./exps/pretrained/mvtec_pretrained.pth \
   --model ViT-L-14-336 \
